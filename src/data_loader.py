@@ -1,11 +1,12 @@
 import os
-from dataset import load_data, Dataset, DatasetDict
-from typing import Union
+from datasets import load_dataset, Dataset, DatasetDict
+from typing import Union, Optional
 
 
 def fetch_dataset(
     name: str,
-    split: Union[STR, None] = "train",
+    config: Optional[str] = None,
+    split: Union[str, None] = None,
     save_format: str = "csv",
     save_dir: str = "../data/raw",
 ):
@@ -23,13 +24,17 @@ def fetch_dataset(
     """
     try:
         if split is None:
-            dataset = load_data(name)
+            dataset = load_dataset(name, config)
         else:
-            dataset = load_data(name, split=split)
+            dataset = load_dataset(name, config, split=split)
+
         os.makedirs(save_dir, exist_ok=True)
+        prefix = name.replace("/", "_")
+        if config:
+            prefix += f"_{config}"
 
         if isinstance(dataset, Dataset):
-            save_path = os.path.join(save_dir, f"{name}_{split}.{save_format}")
+            save_path = os.path.join(save_dir, f"{prefix}_{split}.{save_format}")
             if save_format == "csv":
                 dataset.to_csv(save_path)
             elif save_format == "json":
@@ -39,13 +44,17 @@ def fetch_dataset(
         elif isinstance(dataset, DatasetDict):
             for k in dataset:
                 subset = dataset[k]
-                save_path = os.path.join(save_dir, f"{name}_{k}.{save_format}")
+                save_path = os.path.join(save_dir, f"{prefix}_{k}.{save_format}")
                 if save_format == "csv":
-                    dataset.to_csv(save_path)
+                    subset.to_csv(save_path)
                 elif save_format == "json":
-                    dataset.to_json(save_path)
+                    subset.to_json(save_path)
         return dataset
+
     except Exception as e:
         raise RuntimeError(
-            f"Failed to load or save dataset '{name} with split '{split}': {e}"
+            f"Failed to load or save dataset '{name}' (config='{config}') with split '{split}': {e}"
         )
+
+
+fetch_dataset("masakhane/afrisenti", config="twi", save_format="csv")
