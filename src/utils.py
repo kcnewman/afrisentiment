@@ -4,28 +4,7 @@ import pandas as pd
 import pathlib as Path
 import logging
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-
-
-def clean_text(text):
-    "Clean text, lowercase punctuation"
-    pass
-
-
-def tokenize(text):
-    "Split cleaned text into tokens."
-    pass
-
-
-def remove_stopwords(tokens, stopewords_set):
-    "remove stop words"
-    pass
-
-
-class preprocess_text(text):
-    "A wrapper of the funcs above"
-
-    pass
+# from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 
 
 def build_vocab(corpus):
