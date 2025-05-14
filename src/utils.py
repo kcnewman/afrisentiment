@@ -1,15 +1,37 @@
-import os
+from src.preprocessing import Preprocess
 import numpy as np
 import pandas as pd
-import pathlib as Path
-import logging
 import matplotlib.pyplot as plt
-# from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 
 
-def build_vocab(corpus):
-    "extract unique words from corpus"
-    pass
+def build_freqs(texts, ys):
+    """Build frequency tables
+    Args:
+        text: A list of str
+        ys: A binary array matching sentiment (1 for positive and 0 negative)
+    Output:
+        freqs (dict): Dictionary mapping each word(word, sentiment) pair to its frequency
+    """
+    yls = np.squeeze(ys).tolist()
+    freqs = {}
+    for y, text in zip(yls, texts):
+        for word in Preprocess.process(text):
+            pair = (word, y)
+            if pair in freqs:
+                freqs[pair] += 1
+            else:
+                freqs[pair] = 1
+    return freqs
+
+
+def plot_sentiment(df):
+    sentiment_counts = df["label"].value_counts()
+    plt.bar(sentiment_counts.index, sentiment_counts.values)
+    plt.xlabel("Sentiment")
+    plt.ylabel("Count")
+    plt.title("Distribution of Sentiments")
+    plt.xticks([0, 1], ["Negative", "Positive"])
+    plt.show()
 
 
 def count_word_freqs_by_class(texts, labels):
