@@ -109,7 +109,7 @@ def predict_naive_bayes(
 
     if return_label == "name":
         return class_names[pred_class]
-    else:  # return_label == "encoded"
+    else:  
         return pred_class
 
 
@@ -139,15 +139,12 @@ def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
             val_fold_x = val_x.iloc[val_idx]
             val_fold_y = val_y.iloc[val_idx]
 
-            # Build frequencies from full training data
             freqs = build_freqs(train_x, train_y)
 
-            # Train with current alpha
             logprior, loglikelihood, vocab, classes = train_naive_bayes(
                 freqs, train_x, train_y, alpha
             )
-
-            # Predict on val fold with numeric encoded labels
+            
             preds = [
                 predict_naive_bayes(
                     text,
