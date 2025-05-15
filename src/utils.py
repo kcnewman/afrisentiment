@@ -26,7 +26,7 @@ def train_naive_bayes(freqs, train_x, train_y):
     Args:
         freqs (dict): dictionary from (word,label) to how often the word appears
         train_x (ls): list of tweets
-        train_y (ls): list of corresponding sentiment
+        train_y (np.array): list of corresponding sentiment
     Output:
         logprior: the log prior
         loglikelihood: the loglikelihood
@@ -61,63 +61,73 @@ def train_naive_bayes(freqs, train_x, train_y):
     return logprior, loglikelihood, vocab, classes
 
 
-def compute_tf_idf(corpus):
-    "compute TF-IDF vectors for a list of texts"
+def predict_naive_bayes(
+    text, logprior, loglikelihood, vocab, classes, fallback="prior"
+):
+    preprocessor = Preprocess()
+    tokens = preprocessor.process(text)
+    word_idx = {word: i for i, word in enumerate(vocab)}
+    class_scores = logprior.copy()
+
+    found_word = False
+    for word in tokens:
+        if word in word_idx:
+            idx = word_idx[word]
+            class_scores += loglikelihood[:, idx]
+            found_word = True
+    if not found_word:
+        if fallback == "prior":
+            return classes[np.argmax(logprior)]
+        else:
+            return "unknown"
+
+    pred_class = np.argmax(class_scores)
+    class_names = {0: "negative", 1: "neutral", 2: "positive"}
+    return class_names[classes[pred_class]]
 
 
-def compute_log_prior(labels):
-    "compute log prior prob for each class"
-    pass
+# def compute_tf_idf(corpus):
+#     "compute TF-IDF vectors for a list of texts"
 
 
-def compute_log_likelihoods(freqs_by_class, vocab_size, alpha=1):
-    "With Laplacian smoothing"
-    pass
+# def evaluate_predictions(y_true, y_pred):
+#     "Compute accuracy, precision, recall, F1."
+#     pass
 
 
-def predict_naive_bayes(text, log_priors, log_likelihoods, vocab, stopwords_set):
-    "predict class for a given text"
-    pass
+# def plot_confusion_matrix(y_true, y_pred, labels):
+#     "Plot a labeled confusion matrix."
+#     pass
 
 
-def evaluate_predictions(y_true, y_pred):
-    "Compute accuracy, precision, recall, F1."
-    pass
+# def visualize_clusters(X_reduced, labels, texts):
+#     "PCA/t-SNE visualization of clusters with optional sentiment labels."
+#     pass
 
 
-def plot_confusion_matrix(y_true, y_pred, labels):
-    "Plot a labeled confusion matrix."
-    pass
+# def cosine_similarity_matrix(query_vec, doc_vecs):
+#     "Return similarity scores."
 
 
-def visualize_clusters(X_reduced, labels, texts):
-    "PCA/t-SNE visualization of clusters with optional sentiment labels."
-    pass
+# def search_documents(query, docs, vectorizer):
+#     "Compute and return top-N similar documents."
 
 
-def cosine_similarity_matrix(query_vec, doc_vecs):
-    "Return similarity scores."
+# def load_aligned_sentences(filepath):
+#     "Load Ewe–Twi parallel data."
 
 
-def search_documents(query, docs, vectorizer):
-    "Compute and return top-N similar documents."
+# def compute_avg_fasttext_embeddings(sentences, model):
+#     "Generate sentence embeddings."
 
 
-def load_aligned_sentences(filepath):
-    "Load Ewe–Twi parallel data."
+# def train_translation_matrix(X_src, Y_tgt):
+#     "Use least squares to learn transformation matrix."
 
 
-def compute_avg_fasttext_embeddings(sentences, model):
-    "Generate sentence embeddings."
+# def translate_sentence(sentence, src_model, W):
+#     "Project sentence to target embedding space."
 
 
-def train_translation_matrix(X_src, Y_tgt):
-    "Use least squares to learn transformation matrix."
-
-
-def translate_sentence(sentence, src_model, W):
-    "Project sentence to target embedding space."
-
-
-def classify_translated_embedding(embedding, classifier):
-    "Use trained model to predict sentiment."
+# def classify_translated_embedding(embedding, classifier):
+#     "Use trained model to predict sentiment."
