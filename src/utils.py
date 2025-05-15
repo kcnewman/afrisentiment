@@ -24,16 +24,6 @@ def build_freqs(texts, ys):
     return freqs
 
 
-def plot_sentiment(df):
-    sentiment_counts = df["label"].value_counts()
-    plt.bar(sentiment_counts.index, sentiment_counts.values)
-    plt.xlabel("Sentiment")
-    plt.ylabel("Count")
-    plt.title("Distribution of Sentiments")
-    plt.xticks([0, 1], ["Negative", "Positive"])
-    plt.show()
-
-
 def count_word_freqs_by_class(texts, labels):
     "return class-wise word freqs dict"
     pass
