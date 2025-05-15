@@ -1,7 +1,28 @@
 from src.preprocessing import Preprocess
 from sklearn.model_selection import KFold
-from sklearn.metrics import f1_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import (
+    f1_score,
+    f1_score,
+    accuracy_score,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 import numpy as np
+import pandas as pd
+
+
+def load_data():
+    train_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_train.csv")
+    val_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_validation.csv")
+    test_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_test.csv")
+
+    encoder = LabelEncoder()
+    train_df["sentiment"] = encoder.fit_transform(train_df["label"])
+    val_df["sentiment"] = encoder.transform(val_df["label"])
+    test_df["sentiment"] = encoder.transform(test_df["label"])
+
+    return train_df, val_df, test_df, encoder
 
 
 def build_freqs(texts, ys):
@@ -92,69 +113,6 @@ def predict_naive_bayes(
         return pred_class
 
 
-# def predict_naive_bayes(
-#     text, logprior, loglikelihood, vocab, classes, fallback="prior"
-# ):
-#     class_names = {0: "negative", 1: "neutral", 2: "positive"}
-#     preprocessor = Preprocess()
-#     tokens = preprocessor.process(text)
-#     word_idx = {word: i for i, word in enumerate(vocab)}
-#     class_scores = logprior.copy()
-
-#     found_word = False
-#     for word in tokens:
-#         if word in word_idx:
-#             idx = word_idx[word]
-#             class_scores += loglikelihood[:, idx]
-#             found_word = True
-#     if not found_word:
-#         if fallback == "prior":
-#             return class_names[classes[np.argmax(logprior)]]
-#         else:
-#             return "unknown"
-
-#     pred_class = np.argmax(class_scores)
-
-#     return class_names[classes[pred_class]]
-
-
-# def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
-#     """
-#     Perform k-fold CV to tune alpha for Naive Bayes
-#     Args:
-#         cv_x: list or array of texts
-#         cv_y: array of encoded labels
-#         alpha_values: list of alpha values to try
-#         k: number of folds
-#     Returns:
-#         best_alpha: alpha with highest average F1
-#         scores_dict: {alpha: avg_f1}
-#     """
-#     ult_alpha = None
-#     ult_score = -1
-#     for alpha in alphas:
-#         f1_scores = []
-#         kf = KFold(n_splits=k, shuffle=True, random_state=42)
-#         for train_idx, val_idx in kf.split(val_x):
-#             val_fold_x = val_x[val_idx]
-#             val_fold_y = val_y[val_idx]
-#             freqs = build_freqs(train_x, train_y)
-#             logprior, loglikelihood, vocab, classes = train_naive_bayes(
-#                 freqs, train_x, train_y, alpha
-#             )
-#             preds = [
-#                 predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
-#                 for text in val_fold_x
-#             ]
-#             f1 = f1_score(val_fold_y, preds, average="macro")
-#             f1_scores.append(f1)
-#         avg_f1 = np.mean(f1_scores)
-#         if avg_f1 > ult_score:
-#             ult_score = avg_f1
-#             ult_alpha = alpha
-#     return ult_alpha
-
-
 def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
     """
     Perform k-fold CV to tune alpha for Naive Bayes
@@ -213,6 +171,31 @@ def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
             ult_alpha = alpha
 
     return ult_alpha, scores_dict
+
+
+def retrain_final_model(full_train_x, full_train_y, alpha):
+    freqs_full = build_freqs(full_train_x, full_train_y)
+    return train_naive_bayes(freqs_full, full_train_x, full_train_y, alpha)
+
+
+def evaluate_model(test_x, test_y, logprior, loglikelihood, vocab, classes, encoder):
+    test_preds = [
+        predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
+        for text in test_x
+    ]
+    test_preds_enc = encoder.transform(test_preds)
+    f1 = f1_score(test_y, test_preds_enc, average="macro")
+    acc = accuracy_score(test_y, test_preds_enc)
+
+    print(f"\nFinal Evaluation:\nF1 Score: {f1:.4f}\nAccuracy: {acc:.4f}")
+    cm = confusion_matrix(test_y, test_preds_enc)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=encoder.classes_)
+    disp.plot(cmap="Blues")
+
+
+def print_sample_prediction(text, logprior, loglikelihood, vocab, classes):
+    pred = predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
+    print(f"\nSample prediction for '{text}': {pred}")
 
 
 # def compute_tf_idf(corpus):
