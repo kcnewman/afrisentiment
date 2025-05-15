@@ -3,7 +3,6 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import (
     f1_score,
-    f1_score,
     accuracy_score,
     confusion_matrix,
     ConfusionMatrixDisplay,
@@ -109,7 +108,7 @@ def predict_naive_bayes(
 
     if return_label == "name":
         return class_names[pred_class]
-    else:  
+    else:
         return pred_class
 
 
@@ -144,7 +143,7 @@ def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
             logprior, loglikelihood, vocab, classes = train_naive_bayes(
                 freqs, train_x, train_y, alpha
             )
-            
+
             preds = [
                 predict_naive_bayes(
                     text,
