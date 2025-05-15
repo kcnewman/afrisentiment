@@ -1,7 +1,5 @@
 from src.preprocessing import Preprocess
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
 
 def build_freqs(texts, ys):
@@ -23,9 +21,44 @@ def build_freqs(texts, ys):
     return freqs
 
 
-def count_word_freqs_by_class(texts, labels):
-    "return class-wise word freqs dict"
-    pass
+def train_naive_bayes(freqs, train_x, train_y):
+    """Train a naive bayes classifier
+    Args:
+        freqs (dict): dictionary from (word,label) to how often the word appears
+        train_x (ls): list of tweets
+        train_y (ls): list of corresponding sentiment
+    Output:
+        logprior: the log prior
+        loglikelihood: the loglikelihood
+    """
+    labels = np.array(train_y)
+    classes = np.unique(labels)
+    n_classes = len(classes)
+
+    vocab = sorted(set([word for word, label in freqs.keys()]))
+    vocab_size = len(vocab)
+
+    word_idx = {word: i for i, word in enumerate(vocab)}
+    class_idx = {c: i for i, c in enumerate(classes)}
+
+    D = len(train_x)
+    D_class = np.array([np.sum(labels == c) for c in classes])
+
+    logprior = np.log(D_class / D)
+
+    word_counts = np.zeros((n_classes, vocab_size), dtype=np.float64)
+
+    for (word, label), count in freqs.items():
+        i = class_idx[label]
+        j = word_idx[word]
+        word_counts[i, j] += count
+
+    total_class_counts = word_counts.sum(axis=1, keepdims=True)
+    alpha = 1.0
+    loglikelihood = np.log(
+        (word_counts + alpha) / (total_class_counts + alpha * vocab_size)
+    )
+    return logprior, loglikelihood, vocab, classes
 
 
 def compute_tf_idf(corpus):
