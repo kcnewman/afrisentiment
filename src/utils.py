@@ -8,19 +8,18 @@ def build_freqs(texts, ys):
     """Build frequency tables
     Args:
         text: A list of str
-        ys: A binary array matching sentiment (1 for positive and 0 negative)
+        ys: An array matching sentiment
     Output:
         freqs (dict): Dictionary mapping each word(word, sentiment) pair to its frequency
     """
+    preprocessor = Preprocess()
     yls = np.squeeze(ys).tolist()
     freqs = {}
     for y, text in zip(yls, texts):
-        for word in Preprocess.process(text):
+        tokens = preprocessor.process(text)
+        for word in tokens:
             pair = (word, y)
-            if pair in freqs:
-                freqs[pair] += 1
-            else:
-                freqs[pair] = 1
+            freqs[pair] = freqs.get(pair, 0) + 1
     return freqs
 
 

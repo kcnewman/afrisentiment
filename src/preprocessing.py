@@ -9,7 +9,7 @@ class Preprocess:
         )
         self.stop_words = stop_words if stop_words else set()
 
-    def clean_text(text):
+    def clean_text(self, text):
         """
         Input:
             text: a string containing corpus
@@ -21,6 +21,7 @@ class Preprocess:
         text = re.sub(r"^RT[\s]+", "", text)
         text = re.sub(r"https?://[^\s\n\r]+", "", text)
         text = re.sub(r"#", "", text)
+        return text
 
     def tokenize(self, text):
         "Split cleaned text into tokens."
