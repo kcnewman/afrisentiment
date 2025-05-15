@@ -1,4 +1,6 @@
 from src.preprocessing import Preprocess
+from sklearn.model_selection import KFold
+from sklearn.metrics import f1_score
 import numpy as np
 
 
@@ -21,12 +23,13 @@ def build_freqs(texts, ys):
     return freqs
 
 
-def train_naive_bayes(freqs, train_x, train_y):
+def train_naive_bayes(freqs, train_x, train_y, alpha=1.0):
     """Train a naive bayes classifier
     Args:
         freqs (dict): dictionary from (word,label) to how often the word appears
         train_x (ls): list of tweets
         train_y (np.array): list of corresponding sentiment
+        alpha (float): Laplacian smoothing value
     Output:
         logprior: the log prior
         loglikelihood: the loglikelihood
@@ -54,7 +57,6 @@ def train_naive_bayes(freqs, train_x, train_y):
         word_counts[i, j] += count
 
     total_class_counts = word_counts.sum(axis=1, keepdims=True)
-    alpha = 1.0
     loglikelihood = np.log(
         (word_counts + alpha) / (total_class_counts + alpha * vocab_size)
     )
@@ -62,8 +64,9 @@ def train_naive_bayes(freqs, train_x, train_y):
 
 
 def predict_naive_bayes(
-    text, logprior, loglikelihood, vocab, classes, fallback="prior"
+    text, logprior, loglikelihood, vocab, classes, fallback="prior", return_label="name"
 ):
+    class_names = {0: "negative", 1: "neutral", 2: "positive"}
     preprocessor = Preprocess()
     tokens = preprocessor.process(text)
     word_idx = {word: i for i, word in enumerate(vocab)}
@@ -77,13 +80,139 @@ def predict_naive_bayes(
             found_word = True
     if not found_word:
         if fallback == "prior":
-            return classes[np.argmax(logprior)]
+            pred_class = classes[np.argmax(logprior)]
         else:
             return "unknown"
+    else:
+        pred_class = classes[np.argmax(class_scores)]
 
-    pred_class = np.argmax(class_scores)
-    class_names = {0: "negative", 1: "neutral", 2: "positive"}
-    return class_names[classes[pred_class]]
+    if return_label == "name":
+        return class_names[pred_class]
+    else:  # return_label == "encoded"
+        return pred_class
+
+
+# def predict_naive_bayes(
+#     text, logprior, loglikelihood, vocab, classes, fallback="prior"
+# ):
+#     class_names = {0: "negative", 1: "neutral", 2: "positive"}
+#     preprocessor = Preprocess()
+#     tokens = preprocessor.process(text)
+#     word_idx = {word: i for i, word in enumerate(vocab)}
+#     class_scores = logprior.copy()
+
+#     found_word = False
+#     for word in tokens:
+#         if word in word_idx:
+#             idx = word_idx[word]
+#             class_scores += loglikelihood[:, idx]
+#             found_word = True
+#     if not found_word:
+#         if fallback == "prior":
+#             return class_names[classes[np.argmax(logprior)]]
+#         else:
+#             return "unknown"
+
+#     pred_class = np.argmax(class_scores)
+
+#     return class_names[classes[pred_class]]
+
+
+# def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
+#     """
+#     Perform k-fold CV to tune alpha for Naive Bayes
+#     Args:
+#         cv_x: list or array of texts
+#         cv_y: array of encoded labels
+#         alpha_values: list of alpha values to try
+#         k: number of folds
+#     Returns:
+#         best_alpha: alpha with highest average F1
+#         scores_dict: {alpha: avg_f1}
+#     """
+#     ult_alpha = None
+#     ult_score = -1
+#     for alpha in alphas:
+#         f1_scores = []
+#         kf = KFold(n_splits=k, shuffle=True, random_state=42)
+#         for train_idx, val_idx in kf.split(val_x):
+#             val_fold_x = val_x[val_idx]
+#             val_fold_y = val_y[val_idx]
+#             freqs = build_freqs(train_x, train_y)
+#             logprior, loglikelihood, vocab, classes = train_naive_bayes(
+#                 freqs, train_x, train_y, alpha
+#             )
+#             preds = [
+#                 predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
+#                 for text in val_fold_x
+#             ]
+#             f1 = f1_score(val_fold_y, preds, average="macro")
+#             f1_scores.append(f1)
+#         avg_f1 = np.mean(f1_scores)
+#         if avg_f1 > ult_score:
+#             ult_score = avg_f1
+#             ult_alpha = alpha
+#     return ult_alpha
+
+
+def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
+    """
+    Perform k-fold CV to tune alpha for Naive Bayes
+    Args:
+        train_x: list or array of texts (training data)
+        train_y: array of encoded labels (training labels)
+        val_x: list or array of texts (validation data)
+        val_y: array of encoded labels (validation labels)
+        alphas: list of alpha values to try
+        k: number of folds
+    Returns:
+        best_alpha: alpha with highest average F1
+        scores_dict: {alpha: avg_f1}
+    """
+    ult_alpha = None
+    ult_score = -1
+    scores_dict = {}
+
+    for alpha in alphas:
+        f1_scores = []
+        kf = KFold(n_splits=k, shuffle=True, random_state=42)
+
+        for train_idx, val_idx in kf.split(val_x):
+            val_fold_x = val_x.iloc[val_idx]
+            val_fold_y = val_y.iloc[val_idx]
+
+            # Build frequencies from full training data
+            freqs = build_freqs(train_x, train_y)
+
+            # Train with current alpha
+            logprior, loglikelihood, vocab, classes = train_naive_bayes(
+                freqs, train_x, train_y, alpha
+            )
+
+            # Predict on val fold with numeric encoded labels
+            preds = [
+                predict_naive_bayes(
+                    text,
+                    logprior,
+                    loglikelihood,
+                    vocab,
+                    classes,
+                    return_label="encoded",
+                )
+                for text in val_fold_x
+            ]
+
+            f1 = f1_score(val_fold_y, preds, average="macro")
+            f1_scores.append(f1)
+
+        avg_f1 = np.mean(f1_scores)
+        scores_dict[alpha] = avg_f1
+
+        if avg_f1 > ult_score:
+            ult_score = avg_f1
+            ult_alpha = alpha
+
+    return ult_alpha, scores_dict
 
 
 # def compute_tf_idf(corpus):
