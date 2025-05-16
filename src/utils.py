@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("../")
+
 from src.preprocessing import Preprocess
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
@@ -33,7 +37,7 @@ def build_freqs(texts, ys):
         freqs (dict): Dictionary mapping each word(word, sentiment) pair to its frequency
     """
     preprocessor = Preprocess()
-    yls = np.squeeze(ys).tolist()
+    yls = list(np.squeeze(ys).tolist()) if not isinstance(ys, list) else ys
     freqs = {}
     for y, text in zip(yls, texts):
         tokens = preprocessor.process(text)
@@ -57,25 +61,20 @@ def train_naive_bayes(freqs, train_x, train_y, alpha=1.0):
     labels = np.array(train_y)
     classes = np.unique(labels)
     n_classes = len(classes)
-
     vocab = sorted(set([word for word, label in freqs.keys()]))
     vocab_size = len(vocab)
 
     word_idx = {word: i for i, word in enumerate(vocab)}
     class_idx = {c: i for i, c in enumerate(classes)}
-
     D = len(train_x)
     D_class = np.array([np.sum(labels == c) for c in classes])
-
     logprior = np.log(D_class / D)
 
     word_counts = np.zeros((n_classes, vocab_size), dtype=np.float64)
-
     for (word, label), count in freqs.items():
         i = class_idx[label]
         j = word_idx[word]
         word_counts[i, j] += count
-
     total_class_counts = word_counts.sum(axis=1, keepdims=True)
     loglikelihood = np.log(
         (word_counts + alpha) / (total_class_counts + alpha * vocab_size)

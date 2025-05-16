@@ -1,4 +1,7 @@
 import re
+import pandas as pd
+import os
+from sklearn.preprocessing import LabelEncoder
 from nltk.tokenize import TweetTokenizer
 
 
@@ -35,3 +38,38 @@ class Preprocess:
         if remove_stopwords:
             tokens = self.remove_stopwords(tokens)
         return tokens
+
+
+class DatasetPreprocessor:
+    def __init__(self, input_dir, output_dir):
+        """
+        Args:
+            input_dir (str): Directory containing raw CSV files.
+            output_dir (str): Directory where preprocessed files will be saved.
+        """
+        self.input_dir = input_dir
+        self.output_dir = output_dir
+        os.makedirs(self.output_dir, exist_ok=True)
+
+    def preprocess_file(self, filename):
+        """
+        Loads, filters, encodes, and saves a single file.
+        Args:
+            filename (str): Name of the file (e.g., 'masakhane_afrisenti_twi_train.csv').
+        """
+        filepath = os.path.join(self.input_dir, filename)
+        df = pd.read_csv(filepath)
+        df = df[df["label"] != "neutral"]
+        output_path = os.path.join(
+            self.output_dir, filename.replace(".csv", "_preprocessed.csv")
+        )
+        df.to_csv(output_path, index=False)
+        print(f"Saved: {output_path}")
+
+    def preprocess_all(self):
+        """
+        Process all relevant files (train, validation, test) in the input directory.
+        """
+        for file in os.listdir(self.input_dir):
+            if file.endswith(".csv"):
+                self.preprocess_file(file)

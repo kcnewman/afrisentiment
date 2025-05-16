@@ -8,7 +8,7 @@ def fetch_dataset(
     config: Optional[str] = None,
     split: Union[str, None] = None,
     save_format: str = "csv",
-    save_dir: str = "../data/raw",
+    save_dir: str = "./raw",
 ):
     """
     Load dataset from Hugging Face.

@@ -1,4 +1,4 @@
-# naive_bayes_pipeline.py
+# Naive Bayes Pipeline
 
 import numpy as np
 
