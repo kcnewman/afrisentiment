@@ -124,10 +124,10 @@ predictions = model.predict(test_x)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is open sourced and free to use.
 
 ## Acknowledgments
 
-- [Masakhane AfriSenti](https://github.com/masakhane-io/masakhane-sentiment) dataset creators and contributors
+- [Masakhane AfriSenti](https://github.com/masakhane-io/masakhane-sentiment) - dataset creators and contributors
 - [African NLP community](https://www.masakhane.io/) - Masakhane Initiative
 - [Twi Language Resources](https://github.com/twi-digital-language-resources) - For language specific tools and resources
