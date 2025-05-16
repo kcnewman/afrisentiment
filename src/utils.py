@@ -10,7 +10,6 @@ from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
     ConfusionMatrixDisplay,
-    classification_report,
     recall_score,
 )
 from sklearn.naive_bayes import MultinomialNB
@@ -19,6 +18,7 @@ from sklearn.pipeline import make_pipeline
 import itertools
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def load_data():
@@ -287,3 +287,23 @@ def tune_params(train_x, train_y, val_x, val_y, params):
         print(f"{i}. {params} → Acc: {acc:.4f} | F1: {f1:.4f} | Recall: {recall:.4f}")
 
     return best_params, best_score, all_results
+
+
+def plot_confusion_matrix(y_true, y_pred, classes, filename="confusion_matrix.png"):
+    """
+    Plots and saves a confusion matrix.
+
+    Args:
+        y_true (array-like): True labels.
+        y_pred (array-like): Predicted labels.
+        classes (list): List of class names.
+        filename (str): Filename to save the plot.
+    """
+    cm = confusion_matrix(y_true, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    disp.plot(ax=ax, cmap="Blues", colorbar=True)
+    plt.title("Confusion Matrix")
+    plt.savefig(filename)
+    plt.close(fig)
