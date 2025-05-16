@@ -5,7 +5,6 @@ sys.path.append("../")
 
 from src.preprocessing import Preprocess
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import (
     f1_score,
     accuracy_score,
@@ -18,27 +17,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import make_pipeline
 import itertools
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-
-
-def load_data():
-    train_df = pd.read_csv(
-        "../data/preprocessed/masakhane_afrisenti_twi_train_preprocessed.csv"
-    )
-    val_df = pd.read_csv(
-        "../data/preprocessed/masakhane_afrisenti_twi_validation_preprocessed.csv"
-    )
-    test_df = pd.read_csv(
-        "../data/preprocessed/masakhane_afrisenti_twi_test_preprocessed.csv"
-    )
-
-    encoder = LabelEncoder()
-    train_df["sentiment"] = encoder.fit_transform(train_df["label"])
-    val_df["sentiment"] = encoder.transform(val_df["label"])
-    test_df["sentiment"] = encoder.transform(test_df["label"])
-
-    return train_df, val_df, test_df, encoder
 
 
 def build_freqs(texts, ys):
@@ -204,31 +183,6 @@ def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
             ult_alpha = alpha
 
     return ult_alpha, scores_dict
-
-
-def retrain_final_model(full_train_x, full_train_y, alpha):
-    freqs_full = build_freqs(full_train_x, full_train_y)
-    return train_naive_bayes(freqs_full, full_train_x, full_train_y, alpha)
-
-
-def evaluate_model(test_x, test_y, logprior, loglikelihood, vocab, classes, encoder):
-    test_preds = [
-        predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
-        for text in test_x
-    ]
-    test_preds_enc = encoder.transform(test_preds)
-    f1 = f1_score(test_y, test_preds_enc, average="macro")
-    acc = accuracy_score(test_y, test_preds_enc)
-
-    print(f"\nFinal Evaluation:\nF1 Score: {f1:.4f}\nAccuracy: {acc:.4f}")
-    cm = confusion_matrix(test_y, test_preds_enc)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=encoder.classes_)
-    disp.plot(cmap="Blues")
-
-
-def print_sample_prediction(text, logprior, loglikelihood, vocab, classes):
-    pred = predict_naive_bayes(text, logprior, loglikelihood, vocab, classes)
-    print(f"\nSample prediction for '{text}': {pred}")
 
 
 def build_tfidf(alpha=1.0, ngram_range=(1, 2), max_df=0.95, min_df=2):
