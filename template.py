@@ -11,7 +11,6 @@ list_of_files = [
     "./notebooks/naive_bayes.ipynb",
     "./src/__init__.py",
     "./src/preprocessing.py",
-    "./src/naive_bayes.py",
     "./src/utils.py",
     "./results/.gitkeep",
     "./requirements.txt",
@@ -19,8 +18,7 @@ list_of_files = [
 
 for file_path in list_of_files:
     file_path = Path(file_path)
-    file_dir, filename = os.path.split(file_path)
-
+    file_dir, filename = os.path.split(str(file_path))
     if file_dir != "":
         os.makedirs(file_dir, exist_ok=True)
         logging.info(f"Creating directory: {file_dir} for file: {filename}")
