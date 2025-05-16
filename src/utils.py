@@ -16,9 +16,15 @@ import pandas as pd
 
 
 def load_data():
-    train_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_train.csv")
-    val_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_validation.csv")
-    test_df = pd.read_csv("data/raw/masakhane_afrisenti_twi_test.csv")
+    train_df = pd.read_csv(
+        "../data/preprocessed/masakhane_afrisenti_twi_train_preprocessed.csv"
+    )
+    val_df = pd.read_csv(
+        "../data/preprocessed/masakhane_afrisenti_twi_validation_preprocessed.csv"
+    )
+    test_df = pd.read_csv(
+        "../data/preprocessed/masakhane_afrisenti_twi_test_preprocessed.csv"
+    )
 
     encoder = LabelEncoder()
     train_df["sentiment"] = encoder.fit_transform(train_df["label"])
@@ -155,7 +161,7 @@ def cross_validation(train_x, train_y, val_x, val_y, alphas, k=5):
                 for text in val_fold_x
             ]
 
-            f1 = f1_score(val_fold_y, preds, average="macro")
+            f1 = f1_score(val_fold_y, np.array(preds), average="macro")
             f1_scores.append(f1)
 
         avg_f1 = np.mean(f1_scores)

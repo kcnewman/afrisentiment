@@ -25,7 +25,7 @@ def main():
 
     print_sample_prediction("3kom", logprior, loglikelihood, vocab, classes)
 
-    alphas = [0.1, 0.01, 0.2, 0.02, 0.3, 0.03, 0.4, 0.04, 0.5, 0.05]
+    alphas = [0.1, 0.01, 0.2, 0.02, 0.3, 0.03, 0.4, 0.5, 0.05]
     best_alpha, scores = cross_validation(train_x, train_y, val_x, val_y, alphas)
     print(f"Best alpha: {best_alpha} | Scores: {scores}")
 
