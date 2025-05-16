@@ -59,6 +59,31 @@ def build_freqs(texts, ys):
     return freqs
 
 
+def extract_features(train_x, freqs):
+    """
+    Extract features from an array of texts.
+
+    Args:
+        train_x (list or np.array): a list or array of texts (tweets).
+        freqs (dict): a dictionary mapping (word, sentiment) pairs to their frequency counts.
+
+    Returns:
+        X (np.ndarray): a 2D numpy array with shape (number_of_texts, vocabulary_size)
+    """
+    preprocessor = Preprocess()
+    tokens_l = [preprocessor.process(tweet) for tweet in train_x]
+    vocab = sorted(set([word for word, _ in freqs.keys()]))
+    word_idx = {word: i for i, word in enumerate(vocab)}
+    n_samples = len(tokens_l)
+    n_features = len(vocab)
+    X = np.zeros((n_samples, n_features))
+    for i, tokens in enumerate(tokens_l):
+        for word in tokens:
+            if word in word_idx:
+                X[i, word_idx[word]] += 1
+    return X
+
+
 def train_naive_bayes(freqs, train_x, train_y, alpha=1.0):
     """Train a naive bayes classifier
     Args:
