@@ -1,4 +1,5 @@
 import sys
+import os
 
 sys.path.append("../")
 
@@ -299,11 +300,14 @@ def plot_confusion_matrix(y_true, y_pred, classes, filename="confusion_matrix.pn
         classes (list): List of class names.
         filename (str): Filename to save the plot.
     """
+    save_dir = "../results/plots"
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, filename)
     cm = confusion_matrix(y_true, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
 
     fig, ax = plt.subplots(figsize=(8, 6))
     disp.plot(ax=ax, cmap="Blues", colorbar=True)
     plt.title("Confusion Matrix")
-    plt.savefig(filename)
+    plt.savefig(save_path)
     plt.close(fig)
