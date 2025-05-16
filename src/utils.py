@@ -10,7 +10,13 @@ from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
     ConfusionMatrixDisplay,
+    classification_report,
+    recall_score,
 )
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import make_pipeline
+import itertools
 import numpy as np
 import pandas as pd
 
@@ -199,48 +205,60 @@ def print_sample_prediction(text, logprior, loglikelihood, vocab, classes):
     print(f"\nSample prediction for '{text}': {pred}")
 
 
-# def compute_tf_idf(corpus):
-#     "compute TF-IDF vectors for a list of texts"
+def build_tfidf(alpha=1.0, ngram_range=(1, 2), max_df=0.95, min_df=2):
+    return make_pipeline(
+        TfidfVectorizer(
+            lowercase=True,
+            ngram_range=ngram_range,
+            max_df=max_df,
+            min_df=min_df,
+        ),
+        MultinomialNB(alpha=alpha),
+    )
 
 
-# def evaluate_predictions(y_true, y_pred):
-#     "Compute accuracy, precision, recall, F1."
-#     pass
+def tune_params(train_x, train_y, val_x, val_y, params):
+    param_names = list(params.keys())
+    param_values = list(params.values())
+    best_score = 0
+    best_params = None
+    all_results = []
 
+    print("Manual parameter search...\n")
 
-# def plot_confusion_matrix(y_true, y_pred, labels):
-#     "Plot a labeled confusion matrix."
-#     pass
+    for param_ in itertools.product(*param_values):
+        params = dict(zip(param_names, param_))
 
+        vectorizer = TfidfVectorizer(
+            lowercase=True,
+            ngram_range=params["tfidfvectorizer__ngram_range"],
+            max_df=params["tfidfvectorizer__max_df"],
+            min_df=params["tfidfvectorizer__min_df"],
+        )
 
-# def visualize_clusters(X_reduced, labels, texts):
-#     "PCA/t-SNE visualization of clusters with optional sentiment labels."
-#     pass
+        nb = MultinomialNB(alpha=params["nb__alpha"])
+        pipeline = make_pipeline(vectorizer, nb)
+        pipeline.fit(train_x, train_y)
+        preds = pipeline.predict(val_x)
 
+        acc = accuracy_score(val_y, preds)
+        f1 = f1_score(val_y, preds, average="macro")
+        recall = recall_score(val_y, preds, average="macro")
 
-# def cosine_similarity_matrix(query_vec, doc_vecs):
-#     "Return similarity scores."
+        all_results.append((params, acc, f1, recall))
+        print(f"Params tried: {params}")
+        print(f"Accuracy: {acc:.4f} | F1: {f1:.4f} | Recall: {recall:.4f}\n")
 
+        if acc > best_score:
+            best_score = acc
+            best_params = params
 
-# def search_documents(query, docs, vectorizer):
-#     "Compute and return top-N similar documents."
+    print("Best Parameter Combination:")
+    print(best_params)
+    print(f"Best Accuracy: {best_score:.4f}")
 
+    print("\n Results Summary:")
+    for i, (params, acc, f1, recall) in enumerate(all_results, 1):
+        print(f"{i}. {params} → Acc: {acc:.4f} | F1: {f1:.4f} | Recall: {recall:.4f}")
 
-# def load_aligned_sentences(filepath):
-#     "Load Ewe–Twi parallel data."
-
-
-# def compute_avg_fasttext_embeddings(sentences, model):
-#     "Generate sentence embeddings."
-
-
-# def train_translation_matrix(X_src, Y_tgt):
-#     "Use least squares to learn transformation matrix."
-
-
-# def translate_sentence(sentence, src_model, W):
-#     "Project sentence to target embedding space."
-
-
-# def classify_translated_embedding(embedding, classifier):
-#     "Use trained model to predict sentiment."
+    return best_params, best_score, all_results
