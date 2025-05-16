@@ -85,7 +85,7 @@ def train_naive_bayes(freqs, train_x, train_y, alpha=1.0):
 def predict_naive_bayes(
     text, logprior, loglikelihood, vocab, classes, fallback="prior", return_label="name"
 ):
-    class_names = {0: "negative", 1: "neutral", 2: "positive"}
+    class_names = {0: "negative", 1: "positive"}
     preprocessor = Preprocess()
     tokens = preprocessor.process(text)
     word_idx = {word: i for i, word in enumerate(vocab)}
