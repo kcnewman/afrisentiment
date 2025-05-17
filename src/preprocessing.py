@@ -1,7 +1,6 @@
 import re
 import pandas as pd
 import os
-from sklearn.preprocessing import LabelEncoder
 from nltk.tokenize import TweetTokenizer
 
 
