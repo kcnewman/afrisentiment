@@ -10,28 +10,6 @@ AfriSentiment performs sentiment analysis on Twi language texts using the Masakh
 - TF-IDF with Multinomial NB (80% accuracy)
 - Logistic Regression (79% accuracy)
 
-## Project Structure
-
-```
-afrisentiment/
-├── data/
-│   ├── raw/                    # Original Masakhane AfriSenti dataset
-│   └── preprocessed/           # Preprocessed and cleaned data
-├── notebooks/
-│   ├── exploration.ipynb       # Data analysis & visualization
-│   ├── naive_bayes.ipynb      # Naive Bayes implementation
-│   ├── tf_idf.ipynb           # TF-IDF vectorization & classification
-│   └── logistic_regression.ipynb    # Logistic regression model
-├── results/
-│   └── plots/                  # Model performance visualizations
-├── src/
-│   ├── __init__.py            # Package initialization
-│   ├── preprocessing.py        # Text preprocessing utilities
-│   └── utils.py               # Helper functions
-├── requirements.txt           # Project dependencies
-├── setup.py                  # Package setup configuration
-└── README.md                 # Project documentation
-```
 
 ## Dataset
 
